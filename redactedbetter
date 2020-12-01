@@ -153,6 +153,10 @@ def main():
             artist = "";
             if len(group['group']['musicInfo']['artists']) > 1:
                 artist = "Various Artists"
+            elif not group['group']['musicInfo']['artists'] and len(group['group']['musicInfo']['composers']) > 1:
+                artist = "Various Artists"
+            elif not group['group']['musicInfo']['artists'] and len(group['group']['musicInfo']['composers']):
+                artist = group['group']['musicInfo']['composers'][0]['name']
             else:
                 artist = group['group']['musicInfo']['artists'][0]['name']
 
