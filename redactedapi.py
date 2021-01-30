@@ -187,7 +187,7 @@ class RedactedAPI:
 
     def snatched(self, skip=None, media=lossless_media):
         if not media.issubset(lossless_media):
-            raise ValueError('Unsupported media type %s' % (media - lossless_media).pop())
+            raise ValueError('Unsupported media type {0}'.format((media - lossless_media).pop()))
 
         # gazelle doesn't currently support multiple values per query
         # parameter, so we have to search a media type at a time;
@@ -197,20 +197,22 @@ class RedactedAPI:
         if media == lossless_media:
             media_params = ['']
         else:
-            media_params = ['&media=%s' % media_search_map[m] for m in media]
+            media_params = ['&media={0}'.format(media_search_map[m]) for m in media]
 
-        url = 'https://redacted.ch/torrents.php?type=snatched&userid=%s&format=FLAC' % self.userid
-        for mp in media_params:
-            page = 1
-            done = False
-            pattern = re.compile('torrents.php\?id=(\d+)&amp;torrentid=(\d+)')
-            while not done:
-                content = self.session.get(url + mp + "&page=%s" % page).text
-                for groupid, torrentid in pattern.findall(content):
-                    if skip is None or torrentid not in skip:
-                        yield int(groupid), int(torrentid)
-                done = 'Next &gt;' not in content
-                page += 1
+        list = ['uploaded', 'snatched']
+        for up_Down in list:
+            url = 'https://redacted.ch/torrents.php?type'+up_Down+'&userid=%s&format=FLAC' % self.userid
+            for mp in media_params:
+                page = 1
+                done = False
+                pattern = re.compile('torrents.php\?id=(\d+)&amp;torrentid=(\d+)')
+                while not done:
+                    content = self.session.get(url + mp + "&page=%s" % page).text
+                    for groupid, torrentid in pattern.findall(content):
+                        if skip is None or torrentid not in skip:
+                            yield int(groupid), int(torrentid)
+                    done = 'Next &gt;' not in content
+                    page += 1
 
     def upload(self, group, torrent, new_torrent, format, description=[]):
         url = "https://redacted.ch/upload.php?groupid=%s" % group['group']['id']
